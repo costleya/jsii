@@ -14,7 +14,7 @@ namespace Amazon.JSII.Generator.Class
         {
         }
 
-        private bool IsDefinedOnAncestor
+        protected bool IsDefinedOnAncestor
         {
             get
             {

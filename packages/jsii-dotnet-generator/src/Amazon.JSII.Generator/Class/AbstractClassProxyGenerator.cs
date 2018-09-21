@@ -50,8 +50,10 @@ namespace Amazon.JSII.Generator.Class
             {
                 if (currentType is InterfaceType interfaceType)
                 {
-                    methods = methods.Concat(interfaceType.Methods ?? new Method[0]);
+                    // Get all properties from the interface.
+                    methods = methods.Concat(interfaceType.Methods ?? Enumerable.Empty<Method>());
 
+                    // Interfaces can have superinterfaces. Run through them too.
                     if (interfaceType.Interfaces != null)
                     {
                         var superinterfaceMethods = interfaceType.Interfaces.Select(r =>
@@ -65,10 +67,12 @@ namespace Amazon.JSII.Generator.Class
                 }
                 else if (currentType is ClassType classType)
                 {
-                    methods = methods.Concat(classType.Methods ?? new Method[0]);
+                    // Get all methods from the interface
+                    methods = methods.Concat(classType.Methods ?? Enumerable.Empty<Method>());
 
                     if (classType.Interfaces != null)
                     {
+                        // Run through all the interfaces.
                         var superinterfaceMethods = classType.Interfaces.Select(r =>
                                 Symbols.GetTypeFromFullyQualifiedName(r.FullyQualifiedName) as
                                     InterfaceType)
@@ -78,6 +82,7 @@ namespace Amazon.JSII.Generator.Class
                         methods = methods.Concat(superinterfaceMethods);
                     }
 
+                    // Run through the superclass.
                     if (classType.Base != null)
                     {
                         methods = methods.Concat(GetAllMethodsRecurse(
@@ -89,7 +94,8 @@ namespace Amazon.JSII.Generator.Class
                 return methods;
             }
 
-            return GetAllMethodsRecurse(type, new List<Method>())
+            // Only get the first declaration encountered, and keep it if it is abstract.
+            return GetAllMethodsRecurse(type, Enumerable.Empty<Method>())
                 .GroupBy(m => (m.Name,
                     string.Join("",
                         m.Parameters?.Select(p => p.Name + p.Type.FullyQualifiedName) ?? Enumerable.Empty<string>())))
@@ -103,8 +109,10 @@ namespace Amazon.JSII.Generator.Class
             {
                 if (currentType is InterfaceType interfaceType)
                 {
-                    properties = properties.Concat(interfaceType.Properties ?? new Property[0]);
+                    // Get all properties from the interface.
+                    properties = properties.Concat(interfaceType.Properties ?? Enumerable.Empty<Property>());
 
+                    // Interfaces can have superinterfaces. Run through them too.
                     if (interfaceType.Interfaces != null)
                     {
                         var superinterfaceMethods = interfaceType.Interfaces.Select(r =>
@@ -118,9 +126,11 @@ namespace Amazon.JSII.Generator.Class
                 }
                 else if (currentType is ClassType classType)
                 {
+                    // Add the properties from the class.
                     properties =
-                        properties.Concat(classType.Properties ?? new Property[0]);
+                        properties.Concat(classType.Properties ?? Enumerable.Empty<Property>());
 
+                    // Run through all the interfaces.
                     if (classType.Interfaces != null)
                     {
                         var superinterfaceMethods = classType.Interfaces.Select(r =>
@@ -132,6 +142,7 @@ namespace Amazon.JSII.Generator.Class
                         properties = properties.Concat(superinterfaceMethods);
                     }
 
+                    // Run through the superclass.
                     if (classType.Base != null)
                     {
                         properties = properties.Concat(GetAllPropertiesRecurse(
@@ -143,7 +154,8 @@ namespace Amazon.JSII.Generator.Class
                 return properties;
             }
 
-            return GetAllPropertiesRecurse(type, new List<Property>())
+            // Only get the first declaration encountered, and keep it if it is abstract.
+            return GetAllPropertiesRecurse(type, Enumerable.Empty<Property>())
                 .GroupBy(p => p.Name)
                 .Select(g => g.First())
                 .Where(p => p.IsAbstract ?? false);

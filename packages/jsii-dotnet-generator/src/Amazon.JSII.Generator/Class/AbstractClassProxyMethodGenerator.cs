@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Amazon.JSII.JsonModel.Spec;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,8 +17,16 @@ namespace Amazon.JSII.Generator.Class
         protected override IEnumerable<SyntaxKind> GetModifierKeywords()
         {
             yield return Method.IsProtected ? SyntaxKind.ProtectedKeyword : SyntaxKind.PublicKeyword;
-            // Abstract class proxies can only contain overwritten members.
-            yield return SyntaxKind.OverrideKeyword;
+            
+            // Type is the abstract class, so we need to check it as well as ancestors.
+            if (IsDefinedOnAncestor || Type.Methods.Any(m => m.Name == Method.Name))
+            {
+                yield return SyntaxKind.OverrideKeyword;
+            }
+            else
+            {
+                yield return SyntaxKind.VirtualKeyword;
+            }
         }
 
         protected override BlockSyntax GetBody()
